@@ -22,14 +22,99 @@ const fullTitle = title ? `${title} | ${site.name}` : `${site.name}, ${site.role
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script is:inline>document.documentElement.classList.add('js');</script>
+    <script is:inline>
+      // Lock the page before paint unless this session already entered the password.
+      try {
+        if (sessionStorage.getItem('site-unlocked') !== '1') {
+          document.documentElement.classList.add('locked');
+        }
+      } catch (e) {
+        document.documentElement.classList.add('locked');
+      }
+    </script>
     <ClientRouter />
   </head>
   <body>
+    <div class="gate" id="gate">
+      <form class="gate__form" id="gate-form">
+        <p class="gate__title">This site is private.</p>
+        <input
+          class="gate__input"
+          id="gate-input"
+          type="password"
+          placeholder="Password"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="Password"
+        />
+        <button class="gate__btn" type="submit">Enter</button>
+        <p class="gate__error" id="gate-error" hidden>Incorrect password.</p>
+      </form>
+    </div>
+    <style is:global>
+      html.locked {
+        overflow: hidden;
+      }
+      .gate {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        background: #fff;
+      }
+      html.locked .gate {
+        display: grid;
+      }
+      .gate__form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+        max-width: 280px;
+        text-align: center;
+      }
+      .gate__title {
+        margin: 0;
+        font-size: var(--fs-body);
+        color: var(--ink);
+      }
+      .gate__input,
+      .gate__btn {
+        font: inherit;
+        font-size: var(--fs-body);
+        padding: 12px 14px;
+        border-radius: 8px;
+        width: 100%;
+      }
+      .gate__input {
+        border: 1px solid var(--ink);
+        background: #fff;
+        color: var(--ink);
+      }
+      .gate__input::placeholder {
+        color: var(--muted);
+      }
+      .gate__btn {
+        border: none;
+        background: var(--ink);
+        color: #fff;
+        cursor: pointer;
+      }
+      .gate__error {
+        margin: 0;
+        font-size: var(--fs-label);
+        color: var(--ink);
+      }
+    </style>
     <a class="skip" href="#main">Skip to content</a>
     <Nav />
     <main id="main">
@@ -102,10 +187,46 @@ const fullTitle = title ? `${title} | ${site.name}` : `${site.name}, ${site.role
       }
       window.addEventListener('scroll', onScroll, { passive: true });
 
+      // Client-side password gate. Note: this only hides the page in the
+      // browser; it is not real security. The password is stored as a SHA-256
+      // hash so it is not readable in the source.
+      const GATE_HASH =
+        '756ee15750a09afe9c2cebd49a2d0eabd2d916ff88932aef8a37095d6aa792cf';
+      function initGate() {
+        const form = document.getElementById('gate-form') as HTMLFormElement | null;
+        const input = document.getElementById('gate-input') as HTMLInputElement | null;
+        const error = document.getElementById('gate-error');
+        if (!form || !input) return;
+        if (document.documentElement.classList.contains('locked')) input.focus();
+        if (form.dataset.bound) return;
+        form.dataset.bound = '1';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const buf = await crypto.subtle.digest(
+            'SHA-256',
+            new TextEncoder().encode(input.value),
+          );
+          const hex = Array.from(new Uint8Array(buf))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+          if (hex === GATE_HASH) {
+            try {
+              sessionStorage.setItem('site-unlocked', '1');
+            } catch (err) {}
+            document.documentElement.classList.remove('locked');
+          } else if (error) {
+            error.hidden = false;
+            input.value = '';
+            input.focus();
+          }
+        });
+      }
+
       document.addEventListener('astro:page-load', () => {
         lastY = 0;
         onScroll();
         init();
+        initGate();
       });
     </script>
   </body>
