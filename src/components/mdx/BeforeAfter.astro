@@ -1,0 +1,106 @@
+---
+/**
+ * Drag-to-compare slider. Both images should be the same size.
+ * <BeforeAfter label="Editor, before vs. after" />                         → placeholder
+ * <BeforeAfter before="/media/x/old.png" after="/media/x/new.png" label="..." />
+ * beforeLabel="Before"  afterLabel="After"  ratio="16:9"  caption="..."
+ */
+import { hasFile, toRatio } from '../../lib/media';
+
+interface Props {
+  before?: string;
+  after?: string;
+  label: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  ratio?: string;
+  caption?: string;
+}
+
+const { before, after, label, beforeLabel = 'Before', afterLabel = 'After', ratio = '16:9', caption } = Astro.props;
+const ready = hasFile(before) && hasFile(after);
+---
+
+<figure class="block w-wide">
+  <div class="frame reveal" style={`aspect-ratio: ${toRatio(ratio)}`}>
+    {
+      !ready ? (
+        <div class="ph" role="img" aria-label={`Before/after placeholder: ${label}`}>
+          <span class="ph__label">{label}</span>
+          <span class="ph__meta">Before/after placeholder, {ratio}</span>
+        </div>
+      ) : (
+        <div class="cmp" data-compare style="--pos: 50%">
+          <img src={after} alt={`${afterLabel}: ${label}`} loading="lazy" decoding="async" />
+          <img class="cmp__before" src={before} alt={`${beforeLabel}: ${label}`} loading="lazy" decoding="async" />
+          <span class="cmp__tag cmp__tag--l">{beforeLabel}</span>
+          <span class="cmp__tag cmp__tag--r">{afterLabel}</span>
+          <span class="cmp__handle" aria-hidden="true" />
+          <label class="sr-only" for={`cmp-${label}`}>Compare {beforeLabel} and {afterLabel}</label>
+          <input id={`cmp-${label}`} type="range" min="0" max="100" value="50" />
+        </div>
+      )
+    }
+  </div>
+  {caption && <figcaption class="caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .cmp {
+    position: absolute;
+    inset: 0;
+  }
+  .cmp img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cmp__before { clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+  .cmp__handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+  }
+  .cmp__handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  }
+  .cmp__tag {
+    position: absolute;
+    top: 16px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .cmp__tag--l { left: 16px; }
+  .cmp__tag--r { right: 16px; }
+  .cmp input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+  .cmp:has(input:focus-visible) .cmp__handle::after { outline: 2px solid #000; outline-offset: 2px; }
+</style>

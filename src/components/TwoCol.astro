@@ -1,0 +1,33 @@
+---
+// About-page section: small label on the left, content on the right.
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+
+<section class="twocol">
+  <h2 class="twocol__label">{label}</h2>
+  <div class="twocol__body"><slot /></div>
+</section>
+
+<style>
+  .twocol {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 640px) {
+    .twocol {
+      grid-template-columns: 144px 1fr;
+      gap: 0;
+    }
+  }
+  @media (min-width: 1200px) {
+    .twocol { grid-template-columns: 368px 1fr; }
+  }
+  .twocol__label {
+    font-size: 16px;
+    line-height: 1.4;
+    padding-top: 0.2em;
+  }
+</style>

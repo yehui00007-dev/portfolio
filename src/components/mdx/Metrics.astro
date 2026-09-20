@@ -1,0 +1,44 @@
+---
+/**
+ * <Metrics items={[
+ *   { value: '3x', label: 'translation DAU vs. standalone editor' },
+ *   { value: '$1M+', label: 'post-launch revenue' },
+ * ]} />
+ */
+interface Props {
+  items: { value: string; label: string }[];
+}
+const { items } = Astro.props;
+---
+
+<dl class="block w-text metrics">
+  {
+    items.map((m) => (
+      <div class="metric">
+        <dt class="metric__value">{m.value}</dt>
+        <dd class="metric__label">{m.label}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 32px 24px;
+    margin-bottom: 0;
+  }
+  .metric__value {
+    font-size: var(--fs-display);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .metric__label {
+    margin: 8px 0 0;
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--muted);
+    max-width: 24ch;
+  }
+</style>

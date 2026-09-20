@@ -1,0 +1,118 @@
+---
+title: Speechify AI Studio
+cardTitle: 'AI Studio: MVP to $1M+ Revenue in 6 Months'
+meta: Speechify · AI product design · voice/multimodal · 0→1
+summary: Instead of a separate tool for every AI feature, I designed AI Studio as one connected experience, from entry point to editor to export.
+cover: /media/covers/speechify.jpg
+coverLabel: AI Studio editor on a purple gradient
+order: 3
+role: Sole product designer, 100% hands-on
+team: 1 PM, 1 Head of Marketing, 1 Engineering Manager, 7 engineers
+timeline: MVP shipped Feb 2023. I led design through Nov 2023.
+impact: 3x translation DAU • $11K/day revenue • $1M+ post-launch revenue • 95+ CSAT at launch
+---
+
+## Overview
+
+AI Studio started as a web app for turning text into voiceovers. Through 2023, it grew to include translation, voice cloning, AI avatars, and slide-based video.
+
+AI Studio had to cover **many different jobs at two very different depths**. Some people came for one quick task, like a voiceover, a translation, or a cloned voice. Others wanted the full toolset to produce a video. I was the sole designer across that whole arc, and **I owned the information architecture for the entire web app**, from entry point to editor to export.
+
+<CaseMeta
+  role={frontmatter.role}
+  team={frontmatter.team}
+  timeline={frontmatter.timeline}
+  impact={frontmatter.impact}
+/>
+
+<Grid cols={2} caption="Information architecture, Feb 2023 vs. Nov 2023">
+  <Media label="Before: the voiceover-only web app, Feb 2023" ratio="4:3" />
+  <Media label="After: Home → editor → export, holding voiceover, translation, voice cloning, avatars, and slides, Nov 2023" ratio="4:3" />
+</Grid>
+
+## The problem
+
+Customers came to AI Studio for more and more jobs. Company training teams wanted to turn presentations and training docs into avatar-led employee videos. Marketers wanted to produce explainers and campaign videos fast, and translate them for new markets. Each new use case was a good bet for the business.
+
+The easy path was to **give each capability its own tool**. That splits the product into disconnected apps, makes combined jobs painful, and needs new structure every time.
+
+Descript, Veed, Rask, and Synthesia each covered part of this space. **None of them put it all in one product**, and that was the opening.
+
+The AI itself was a second problem. It's what made all of this possible, and **it also wasn't reliable**: processing was slow, speaker detection missed, and translations came back with errors.
+
+## Decision 1: One editor for every capability
+
+AI Studio had two editors, one for turning scripts into AI speech and one for translating uploaded videos. When users asked to translate their AI voiceovers, **our Head of Marketing proposed a toggle** so they could move between the editors quickly.
+
+Before building it, I mapped the most common jobs. The request covered one of them: make a voiceover, then translate it. **But people also did the reverse.** They translated a video, then added pauses, adjusted the tone, or added media, and those tools lived only in the voiceover editor. Either way, people started in one editor and ended up needing the other.
+
+<Media label="Workflow map of both jobs: voiceover → translate, and translate → edit" />
+
+I prototyped the toggle next to one editor with translation built in. **One editor took far fewer steps for both jobs**, which convinced our Head of Marketing. Our Engineering Manager backed it too, since we'd only maintain export and other shared features once.
+
+<Media label="Toggle prototype vs. one editor, with the step count for each job" />
+
+**Translation DAU tripled** compared with the standalone editor, and every capability we added later fit into the same editor.
+
+**Home.** One editor made it harder for new users to see what they could make. So I **redesigned Home around use cases**. The creation menu gives each one a starting point, like voiceover, voice cloning, or video creation. Templates show what's possible, and projects let people pick up past work.
+
+<Media label="Home with creation menu, templates, and projects" />
+
+## Decision 2: A Slides mode that works like PowerPoint
+
+We added features to the editor one at a time: voiceover, images, music, translation, avatars, text. On paper, it was a complete toolkit for marketers and company training teams. But **most people tried it once and didn't come back**. Talking to customers, I learned the editor was too complex for them. They already worked in PowerPoint and Google Slides, and a timeline was the wrong place for them to start.
+
+So I designed **a Slides mode that works the way they already do**. Their whole flow happens there: start from a script, split it into slides, add visuals, then add an avatar and a voiceover and fine-tune it.
+
+<Prototype label="The Slides flow, from script to avatar and voiceover" />
+
+**But some edits are faster on a timeline.** People can drag music or an image across several slides instead of applying it slide by slide, and time when text and images appear or disappear within a single slide. So the timeline stayed, one switch away from Slides.
+
+<Prototype label="Switching between Slides and the timeline" />
+
+After launch, about **70%** of new avatar users stayed in Slides, which showed it fit how most new creators wanted to work.
+
+## Decision 3: AI generates, people stay in control
+
+AI Studio is built on AI-generated voices, avatars, and translations, and the models didn't always get it right. So my principle was simple: since AI output won't be perfect, people should be able to **guide the model before it runs and refine the result after**.
+
+Voiceover starts simple. People type a script, pick a voice, and generate. On top of that, we added **fine-grained controls** so creators can add pauses, adjust speed and pitch, and change the speaking tone until it sounds natural.
+
+<Media label="Voice controls panel" size="text" ratio="4:3" />
+
+For translation, the model is cheaper and more accurate when it knows the original language and how many people are speaking. So I designed the flow to **ask for both before translation runs**.
+
+Translated sentences also change length, so a line can overlap another speaker or run past its part of the video. The easy fix was to speed up the voice. But that would make the call for people without telling them, which breaks the principle, and it sounds rushed next to the rest of the translation. So I designed **a warning state that flags it and offers an AI rewrite** to shorten the line, so the new voiceover fits.
+
+<Grid cols={2}>
+  <Media label="Translation setup: original language + number of speakers" ratio="4:3" />
+  <Media label="Overlap flag with the AI rewrite fix" ratio="4:3" />
+</Grid>
+
+## What we shipped
+
+- **A web app architecture** that took on voiceover, translation, voice cloning, avatars, and slides without a structural rebuild
+- **Core features:** AI Voiceover, AI Translation, Voice Cloning, AI Avatars, Slides, Media Library, Creation Menu, Templates, Export, and more
+- **A tool sidebar** that every capability plugs into as its own panel, built so the next capability fits the same way
+- **A Home page organized around use cases**, so a combined editor stays easy to discover
+- **Two ways to edit the same project**: Slides for the core flow, the timeline for advanced edits
+- **A human-in-control principle for every AI feature**: people guide the model before it runs and refine the result after
+
+## Outcomes
+
+After translation moved into the voiceover editor:
+
+<Metrics items={[
+  { value: '3x', label: 'translation DAU vs. the standalone editor' },
+  { value: '$11K', label: 'revenue per day' },
+  { value: '$1M+', label: 'post-launch revenue' },
+  { value: '95+', label: 'CSAT at launch, plus a +15% export rate' },
+]} />
+
+## What I would have measured
+
+We moved fast, and tracking wasn't in place, so most of our signal came from support tickets and marketing's customer feedback. Here's what I'd set up before launch:
+
+- **One editor:** how many people make a voiceover and translate it in one project, to prove the combined job is common.
+- **Slides:** retention of new avatar creators before and after Slides, to show whether it builds the habit, and which edits send people to the timeline.
+- **AI controls:** how often people fine-tune voiceovers or fix overlaps with the AI rewrite instead of by hand.

@@ -1,0 +1,35 @@
+---
+interface Props {
+  role?: string;
+  team?: string;
+  timeline?: string;
+  impact?: string;
+}
+const rows = Object.entries({
+  Role: Astro.props.role,
+  Team: Astro.props.team,
+  Timeline: Astro.props.timeline,
+  Impact: Astro.props.impact,
+}).filter(([, v]) => v);
+---
+
+{
+  rows.length > 0 && (
+    <ul class="meta">
+      {rows.map(([k, v]) => (
+        <li>
+          <strong>{k}:</strong>{' '}{v}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .meta {
+    padding-left: 1.2em;
+    font-size: var(--fs-body);
+    line-height: 1.4;
+  }
+  .meta strong { font-weight: 700; }
+</style>

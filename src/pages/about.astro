@@ -1,0 +1,154 @@
+---
+import Base from '../layouts/Base.astro';
+import TwoCol from '../components/TwoCol.astro';
+import Media from '../components/mdx/Media.astro';
+import { site, experience } from '../site.config';
+
+// Drop your photos into public/media/about/ with these names.
+const photos = [
+  { src: '/media/about/photo-1.jpg', label: 'Photo: feeding a swan by the lake' },
+  { src: '/media/about/photo-2.jpg', label: 'Photo: red autumn tree against blue sky' },
+];
+
+const contact = [
+  { label: 'Email', value: site.email, href: `mailto:${site.email}` },
+  { label: 'LinkedIn', value: site.linkedinLabel, href: site.linkedin },
+];
+---
+
+<Base title="About">
+  <div class="container page about">
+    <div class="photos rise">
+      {photos.map((p, i) => <Media src={p.src} label={p.label} alt={p.label.replace('Photo: ', '')} eager={i === 0} ratio="auto" class="photo" />)}
+    </div>
+
+    <TwoCol label="About">
+      <div class="story">
+        <p>
+          I'm a product designer, but the thing underneath the work is simpler than the title: I want to help people
+          spend their attention on what actually matters. At work, that means designing away the friction in a workflow —
+          the steps, the confusion, the setup that sits between someone and the thing they're trying to do. It's the
+          problem I keep choosing, whatever the product.
+        </p>
+        <p>
+          That's what drew me to AI. At VSCO I built AI Lab and designed Scout, the product's first onboarding assistant —
+          taking something powerful but overwhelming and making it feel simple to start. At Speechify I built AI Studio
+          from the ground up, taking it 0→1 through launch. Different tools, same instinct: clear the path so people get
+          to the part that matters faster.
+        </p>
+        <p>
+          Lately I've been following that instinct into my own projects, and it's pulled me somewhere more personal. I'm
+          building a voice-notes app that surfaces the themes running through your life — so you can see what keeps
+          coming up and track where you're heading. Next, something for holding onto the moments that matter to you,
+          turning a trip or a memory into something you can keep and return to. Same drive as the work, pointed at life
+          instead of workflow: help people notice what matters and hold onto it.
+        </p>
+        <p>
+          When I'm not designing, I'm a photographer — still chasing good light, still paying attention to the things
+          worth keeping.
+        </p>
+      </div>
+    </TwoCol>
+
+    <TwoCol label="Experience">
+      <ul class="list">
+        {
+          experience.map((job) => (
+            <li>
+              <h3 class="list__title">{job.title}</h3>
+              <p class="label list__sub">{job.dates}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </TwoCol>
+
+    <TwoCol label="Contact">
+      <ol class="list">
+        {
+          contact.map((c, i) => (
+            <li>
+              <h3 class="list__title">
+                <span class="list__num">{String(i + 1).padStart(2, '0')}</span> {c.label}
+              </h3>
+              <a class="list__sub list__link" href={c.href} {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>
+                {c.value}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </TwoCol>
+  </div>
+</Base>
+
+<style>
+  .about {
+    display: grid;
+    gap: var(--space-section);
+  }
+  @media (min-width: 1200px) {
+    .about { gap: 160px; }
+  }
+
+  .photos {
+    display: grid;
+    gap: 24px;
+  }
+  .photos > :global(*) { min-width: 0; }
+  .photos :global(.photo .frame) {
+    aspect-ratio: 358 / 250;
+    border-radius: var(--radius-sm);
+  }
+  @media (min-width: 640px) {
+    .photos { grid-template-columns: 3fr 2fr; }
+    .photos :global(.photo .frame) {
+      aspect-ratio: auto;
+      height: 400px;
+      border-radius: 16px;
+    }
+  }
+  .photos :global(.photo img) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .story {
+    display: grid;
+    gap: 1.05em;
+    font-size: var(--fs-about);
+    line-height: 1.4;
+    max-width: 34em;
+  }
+  .story p { text-wrap: pretty; }
+
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 640px) {
+    .list { gap: 32px; }
+  }
+  .list__title {
+    font-size: var(--fs-card);
+    line-height: 1.4;
+  }
+  .list__num { margin-right: 0.5em; }
+  .list__sub {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 16px;
+    color: var(--muted);
+  }
+  .list__link {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 500ms var(--ease), color 200ms ease;
+  }
+  .list__link:hover {
+    color: var(--ink);
+    background-size: 100% 1px;
+  }
+</style>

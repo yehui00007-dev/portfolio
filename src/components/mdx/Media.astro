@@ -1,0 +1,78 @@
+---
+/**
+ * <Media label="What this shows" />                        → placeholder (16:9)
+ * <Media label="..." ratio="4:3" />                         → placeholder at 4:3
+ * <Media src="/media/x/flow.png" label="..." />             → image (label becomes alt text)
+ * <Media src="/media/x/demo.mp4" label="..." />             → looping muted video
+ * <Media src="/media/x/demo.mp4" controls label="..." />    → click-to-play video
+ * size="text | wide | full"   caption="..."   ratio="16:9" (or "auto")   bg="#f5f5f5"
+ *
+ * If src points to a file that isn't in /public yet, you get the placeholder.
+ */
+import { hasFile, isVideo, toRatio } from '../../lib/media';
+
+interface Props {
+  src?: string;
+  label: string;
+  alt?: string;
+  caption?: string;
+  ratio?: string;
+  size?: 'text' | 'wide' | 'full';
+  controls?: boolean;
+  poster?: string;
+  bg?: string;
+  eager?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  label,
+  alt,
+  caption,
+  ratio,
+  size = 'wide',
+  controls = false,
+  poster,
+  bg,
+  eager = false,
+  class: className,
+} = Astro.props;
+
+const ready = hasFile(src);
+// ratio="auto" = no forced shape (let CSS decide).
+const aspect = ratio === 'auto' ? undefined : toRatio(ratio ?? (ready ? undefined : '16:9'));
+const style = [aspect && `aspect-ratio: ${aspect}`, bg && `background: ${bg}`].filter(Boolean).join('; ');
+---
+
+<figure class:list={['block', `w-${size}`, className]} data-media={ready ? 'ready' : 'placeholder'}>
+  <div class="frame reveal" style={style || undefined}>
+    {
+      !ready ? (
+        <div class="ph" role="img" aria-label={`Placeholder: ${label}`}>
+          <span class="ph__label">{label}</span>
+          <span class="ph__meta">{src ? `Waiting for ${src}` : `Placeholder${ratio ? `, ${ratio}` : ''}`}</span>
+        </div>
+      ) : isVideo(src) ? (
+        controls ? (
+          <video src={src} poster={poster} controls playsinline preload="metadata" aria-label={alt ?? label} />
+        ) : (
+          <video src={src} poster={poster} muted loop playsinline preload="metadata" data-autoplay aria-label={alt ?? label} />
+        )
+      ) : (
+        <img
+          src={src}
+          alt={alt ?? label}
+          loading={eager ? 'eager' : 'lazy'}
+          fetchpriority={eager ? 'high' : 'auto'}
+          decoding="async"
+        />
+      )
+    }
+  </div>
+  {caption && <figcaption class="caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  figure.w-full .frame { border-radius: 0; }
+</style>

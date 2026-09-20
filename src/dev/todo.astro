@@ -1,0 +1,109 @@
+---
+// Dev-only: lists every placeholder across all case studies = your shot list.
+// Injected by astro.config.mjs only during `npm run dev`; never deployed.
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { hasFile } from '../lib/media';
+
+const sources = import.meta.glob('/src/content/work/*.mdx', { query: '?raw', import: 'default', eager: true }) as Record<
+  string,
+  string
+>;
+const entries = await getCollection('work');
+const byId = new Map(entries.map((e) => [e.id, e]));
+
+const attr = (tag: string, name: string) =>
+  tag.match(new RegExp(`\\b${name}=(?:"([^"]*)"|'([^']*)')`))?.slice(1).find(Boolean);
+
+type Item = { kind: string; label: string; detail: string };
+const groups: { id: string; title: string; draft: boolean; items: Item[] }[] = [];
+
+for (const [file, raw] of Object.entries(sources)) {
+  const id = file.split('/').pop()!.replace(/\.mdx$/, '');
+  const entry = byId.get(id);
+  const items: Item[] = [];
+
+  if (entry && !hasFile(entry.data.cover)) {
+    items.push({
+      kind: 'Cover',
+      label: entry.data.coverLabel,
+      detail: entry.data.cover ? `add ${entry.data.cover}` : 'set cover: in frontmatter',
+    });
+  }
+
+  for (const m of raw.matchAll(/<(Media|Prototype|BeforeAfter)\b([\s\S]*?)\/>/g)) {
+    const [, kind, body] = m;
+    const label = attr(body, 'label') ?? '(no label)';
+    if (kind === 'BeforeAfter') {
+      const before = attr(body, 'before');
+      const after = attr(body, 'after');
+      if (!hasFile(before) || !hasFile(after)) {
+        items.push({ kind, label, detail: before || after ? `add ${[before, after].filter(Boolean).join(' + ')}` : 'needs before + after' });
+      }
+      continue;
+    }
+    const src = attr(body, 'src');
+    if (!hasFile(src)) {
+      items.push({
+        kind,
+        label,
+        detail: src ? `add ${src}` : `${attr(body, 'ratio') ?? (kind === 'Prototype' ? attr(body, 'device') ?? 'desktop' : '16:9')}`,
+      });
+    }
+  }
+
+  groups.push({ id, title: entry?.data.title ?? id, draft: !!entry?.data.draft, items });
+}
+
+const total = groups.reduce((n, g) => n + g.items.length, 0);
+---
+
+<Base title="Media to-do">
+  <div class="container page todo">
+    <p class="label">Dev only. This page never ships.</p>
+    <h1 class="display">{total} placeholders left</h1>
+
+    {
+      groups.map((g) => (
+        <section>
+          <h2>
+            <a href={`/work/${g.id}/`}>{g.title}</a>
+            {g.draft && <span class="label"> (draft)</span>}
+          </h2>
+          {g.items.length === 0 ? (
+            <p class="label">All media in place.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>What it shows</th>
+                  <th>Next step</th>
+                </tr>
+              </thead>
+              <tbody>
+                {g.items.map((it) => (
+                  <tr>
+                    <td>{it.kind}</td>
+                    <td>{it.label}</td>
+                    <td class="label">{it.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .todo { display: grid; gap: 64px; }
+  h2 { font-size: var(--fs-h2); margin-bottom: 16px; }
+  h2 a { text-decoration: underline; text-underline-offset: 0.18em; }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th, td { text-align: left; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  td:first-child { white-space: nowrap; }
+</style>

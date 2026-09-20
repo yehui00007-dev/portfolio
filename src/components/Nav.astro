@@ -1,0 +1,89 @@
+---
+import { site, nav } from '../site.config';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) =>
+  href === '/' ? path === '/' || path.startsWith('/work') : path.startsWith(href);
+---
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a class="nav__name" href="/">{site.name}</a>
+    <nav aria-label="Main">
+      <ul class="nav__links">
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={!item.external && isActive(item.href) ? 'page' : undefined}
+                {...(item.external ? { target: '_blank', rel: 'noopener' } : {})}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: saturate(1.4) blur(16px);
+    -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    transition: transform 500ms var(--ease), box-shadow 300ms ease;
+  }
+  :global(.nav--scrolled) { box-shadow: 0 1px 0 var(--line); }
+  :global(.nav--hidden) { transform: translateY(-100%); }
+
+  .nav__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .nav__links a {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .nav__name {
+    font-size: 21px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+  .nav__links {
+    display: flex;
+    gap: clamp(20px, 3vw, 40px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav__links a {
+    position: relative;
+    color: var(--muted);
+    transition: color 200ms ease;
+  }
+  .nav__links a:hover,
+  .nav__links a[aria-current='page'] { color: var(--ink); }
+  .nav__links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 400ms var(--ease);
+  }
+  .nav__links a[aria-current='page']::after { transform: scaleX(1); }
+</style>

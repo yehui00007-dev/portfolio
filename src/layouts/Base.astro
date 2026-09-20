@@ -1,0 +1,112 @@
+---
+import '@fontsource-variable/manrope';
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name}, ${site.role}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // Runs on first load and after every client-side navigation.
+      function init() {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Media settles in as it enters the viewport (once).
+        const revealEls = document.querySelectorAll<HTMLElement>('.reveal:not(.is-in)');
+        if (reduce || !('IntersectionObserver' in window)) {
+          revealEls.forEach((el) => el.classList.add('is-in'));
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  e.target.classList.add('is-in');
+                  io.unobserve(e.target);
+                }
+              });
+            },
+            { rootMargin: '0px 0px -10% 0px', threshold: 0.08 },
+          );
+          revealEls.forEach((el) => io.observe(el));
+        }
+
+        // Looping videos only play while on screen (saves battery + bandwidth).
+        const vids = document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]');
+        if (reduce) {
+          vids.forEach((v) => v.setAttribute('controls', ''));
+        } else if ('IntersectionObserver' in window) {
+          const vio = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                const v = e.target as HTMLVideoElement;
+                if (e.isIntersecting) v.play().catch(() => {});
+                else v.pause();
+              });
+            },
+            { threshold: 0.25 },
+          );
+          vids.forEach((v) => vio.observe(v));
+        }
+
+        // Before/after sliders.
+        document.querySelectorAll<HTMLElement>('[data-compare]').forEach((el) => {
+          const input = el.querySelector<HTMLInputElement>('input[type="range"]');
+          if (!input || input.dataset.bound) return;
+          input.dataset.bound = '1';
+          const set = () => el.style.setProperty('--pos', `${input.value}%`);
+          input.addEventListener('input', set);
+          set();
+        });
+      }
+
+      // Nav tucks away while scrolling down, returns on scroll up.
+      let lastY = 0;
+      function onScroll() {
+        const nav = document.querySelector<HTMLElement>('.nav');
+        if (!nav) return;
+        const y = window.scrollY;
+        nav.classList.toggle('nav--scrolled', y > 8);
+        nav.classList.toggle('nav--hidden', y > 240 && y > lastY);
+        lastY = y;
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      document.addEventListener('astro:page-load', () => {
+        lastY = 0;
+        onScroll();
+        init();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,318 @@
+/* ------------------------------------------------------------------
+   Tokens — values taken from the Framer site (Figma captures at
+   1920 / 768 / 390). Three layouts: phone < 640, tablet 640–1199,
+   desktop ≥ 1200. Change a value here and it updates everywhere.
+------------------------------------------------------------------- */
+:root {
+  --font: 'Manrope Variable', 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ink: #000;
+  --muted: #666;
+  --paper: #fff;
+  --placeholder: #f2f2f2;
+  --placeholder-ink: #8a8a8a;
+  --line: #e6e6e6;
+
+  /* layout */
+  --page-max: 1760px;
+  --text-max: 1200px;
+  --gutter: 16px;
+  --top: 120px;
+  --radius: 16px;
+  --radius-sm: 12px;
+
+  /* vertical rhythm */
+  --space-p: 40px; /* between paragraphs */
+  --space-h: 48px; /* heading → first paragraph */
+  --space-section: 80px; /* text ↔ media, section ↔ section */
+  --space-cards: 40px;
+  --space-hero: 80px; /* home intro → first card */
+
+  /* type scale */
+  --fs-display: clamp(28px, 8.2vw, 36px); /* home intro, case H1 */
+  --fs-about: 26px;
+  --fs-h2: 22px;
+  --fs-body: 16px;
+  --fs-card: 16px;
+  --fs-label: 12px;
+  --fs-small: 16px;
+  --fs-footer: 32px;
+
+  /* motion */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1); /* soft ease-out */
+  --dur: 900ms;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 64px;
+    --top: 160px;
+    --radius: 24px;
+    --space-section: 120px;
+    --space-hero: 120px;
+    --fs-display: clamp(44px, 6.8vw, 64px);
+    --fs-about: 32px;
+    --fs-h2: 26px;
+    --fs-body: 22px;
+    --fs-card: 22px;
+    --fs-label: 14px;
+    --fs-footer: clamp(44px, 6.8vw, 64px);
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --gutter: 80px;
+    --space-hero: 240px;
+    --fs-about: 40px;
+    --fs-h2: 32px;
+    --fs-label: 18px;
+    --fs-footer: 64px;
+  }
+}
+
+/* ------------------------------------------------------------------ base */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4, p, ul, ol, figure, blockquote { margin: 0; }
+h1, h2, h3, h4 { font-weight: 500; }
+img, video, iframe { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+::selection { background: var(--ink); color: var(--paper); }
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  padding: 8px 12px;
+  background: var(--ink);
+  color: var(--paper);
+  z-index: 100;
+}
+.skip:focus { top: 16px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ layout */
+.container {
+  width: 100%;
+  max-width: calc(var(--page-max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.page {
+  padding-top: calc(var(--top) - 80px); /* nav is 80px tall */
+  padding-bottom: var(--top);
+}
+
+.label {
+  font-size: var(--fs-label);
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.display {
+  font-size: var(--fs-display);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------------ prose
+   Case study body. Text sits in a 1200px column; media blocks
+   break out to the full container (or the full viewport).
+------------------------------------------------------------------- */
+.prose > * {
+  max-width: var(--text-max);
+  margin-inline: auto;
+}
+.prose > .w-wide { max-width: none; }
+.prose > .w-text { max-width: var(--text-max); }
+.prose > .w-full {
+  max-width: none;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.prose > * + * { margin-top: var(--space-p); }
+.prose > h2 + * { margin-top: var(--space-h); }
+.prose > * + h2,
+.prose > * + .block,
+.prose > .block + * { margin-top: var(--space-section); }
+
+.prose h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.4;
+}
+.prose h3 {
+  font-size: var(--fs-body);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.prose > h2 + h3 { margin-top: var(--space-h); }
+.prose > * + h3 { margin-top: var(--space-p); }
+.prose > h3 + p { margin-top: 12px; }
+
+.prose p,
+.prose li {
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.prose strong { font-weight: 700; }
+.prose a {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.prose a:hover { text-decoration-thickness: 2px; }
+
+.prose ul,
+.prose ol { padding-left: 1.2em; }
+.prose li + li { margin-top: 8px; }
+.prose li::marker { color: var(--ink); }
+
+.prose blockquote {
+  padding-left: 24px;
+  border-left: 2px solid var(--ink);
+}
+
+.prose hr { display: none; } /* use headings for structure */
+
+/* ------------------------------------------------------------------ media blocks */
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--placeholder);
+  isolation: isolate;
+}
+.frame > img,
+.frame > video {
+  width: 100%;
+  height: auto;
+}
+.frame[style*='aspect-ratio'] > img,
+.frame[style*='aspect-ratio'] > video {
+  height: 100%;
+  object-fit: cover;
+}
+
+.prose .caption {
+  margin-top: 16px;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--muted);
+  max-width: var(--text-max);
+}
+
+/* Placeholder: a labeled gray box at the final shape. */
+.ph {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  padding: 24px;
+  text-align: center;
+  background: var(--placeholder);
+  color: var(--placeholder-ink);
+}
+.ph__label {
+  max-width: 36ch;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--muted);
+}
+.ph__meta { font-size: 12px; }
+
+/* ------------------------------------------------------------------ motion
+   One quiet vocabulary: headings rise in once on load; media settles
+   in (fade + slight zoom-out) as it enters the viewport. Hover only
+   answers the pointer. All of it switches off for reduced motion.
+------------------------------------------------------------------- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+
+.rise {
+  animation: rise 1s var(--ease) both;
+  animation-delay: var(--delay, 80ms);
+}
+
+.js .reveal {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.js .reveal > img,
+.js .reveal > video,
+.js .reveal > .ph {
+  transform: scale(1.06);
+  transition: transform 1.4s var(--ease);
+}
+.js .reveal.is-in { opacity: 1; }
+.js .reveal.is-in > img,
+.js .reveal.is-in > video,
+.js .reveal.is-in > .ph { transform: none; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 350ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js .reveal,
+  .js .reveal > img,
+  .js .reveal > video,
+  .js .reveal > .ph {
+    opacity: 1;
+    transform: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}

@@ -1,0 +1,105 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import CaseMeta from '../../components/CaseMeta.astro';
+import Media from '../../components/mdx/Media.astro';
+import Prototype from '../../components/mdx/Prototype.astro';
+import Grid from '../../components/mdx/Grid.astro';
+import Metrics from '../../components/mdx/Metrics.astro';
+import BeforeAfter from '../../components/mdx/BeforeAfter.astro';
+import { getWork } from '../../lib/work';
+import { hasFile } from '../../lib/media';
+
+export async function getStaticPaths() {
+  const work = await getWork();
+  return work.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, prev: work[i - 1], next: work[i + 1] },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const showCover = hasFile(d.cover);
+---
+
+<Base title={d.title} description={d.summary}>
+  <article class="container page">
+    <header class="head">
+      {d.draft && <p class="label draft">Draft, visible in dev only</p>}
+      <h1 class="display title rise">{d.title}</h1>
+      {d.summary && <p class="summary rise" style="--delay: 120ms">{d.summary}</p>}
+    </header>
+
+    <div class="hero frame rise" style="--delay: 200ms" transition:name={`cover-${entry.id}`}>
+      {
+        showCover ? (
+          <img src={d.cover} alt="" loading="eager" fetchpriority="high" decoding="async" />
+        ) : (
+          <div class="ph">
+            <span class="ph__label">{d.coverLabel}</span>
+            <span class="ph__meta">Cover placeholder</span>
+          </div>
+        )
+      }
+    </div>
+
+    <div class="prose">
+      <Content components={{ Media, Prototype, Grid, Metrics, BeforeAfter, CaseMeta }} />
+    </div>
+
+    <nav class="pager" aria-label="More case studies">
+      {prev ? <a class="pager__link" href={`/work/${prev.id}/`}>‹ {prev.data.cardTitle}</a> : <span />}
+      {next ? <a class="pager__link pager__link--next" href={`/work/${next.id}/`}>{next.data.cardTitle} ›</a> : <span />}
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .title { max-width: 12em; }
+  .summary {
+    margin-top: 20px;
+    max-width: 30em;
+    font-size: var(--fs-body);
+    line-height: 1.4;
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .draft { margin-bottom: 16px; }
+  .hero {
+    margin-top: var(--space-section);
+    aspect-ratio: 358 / 350;
+  }
+  @media (min-width: 640px) {
+    .hero { aspect-ratio: 640 / 600; }
+  }
+  @media (min-width: 1200px) {
+    .hero { aspect-ratio: 1760 / 900; }
+  }
+  .hero > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .prose { margin-top: var(--space-section); }
+
+  .pager {
+    max-width: var(--text-max);
+    margin: 160px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    font-size: var(--fs-label);
+    line-height: 1.4;
+  }
+  .pager__link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    transition: color 200ms ease;
+  }
+  .pager__link:hover { color: var(--ink); }
+  .pager__link--next { text-align: right; }
+</style>

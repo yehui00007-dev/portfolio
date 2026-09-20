@@ -1,0 +1,144 @@
+---
+/**
+ * <Prototype label="Slides flow" />                               → placeholder in a browser frame
+ * <Prototype label="..." device="phone" />                        → placeholder in a phone frame
+ * <Prototype src="https://www.figma.com/proto/..." label="..." /> → live Figma prototype
+ * <Prototype src="https://my-proto.vercel.app" label="..." />     → any live URL (your vibe-coded builds)
+ * <Prototype src="https://youtu.be/..." label="..." />            → YouTube / Vimeo
+ * <Prototype src="/media/x/recording.mp4" label="..." />          → screen recording, looping
+ * device="desktop | phone | none"   ratio="16:10"   caption="..."
+ */
+import { hasFile, isRemote, isVideo, toRatio } from '../../lib/media';
+
+interface Props {
+  src?: string;
+  label: string;
+  device?: 'desktop' | 'phone' | 'none';
+  ratio?: string;
+  caption?: string;
+}
+
+const { src, label, device = 'desktop', ratio, caption } = Astro.props;
+
+function toEmbed(url: string) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    if (host.endsWith('figma.com')) {
+      return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(url)}`;
+    }
+    if (host === 'youtu.be') return `https://www.youtube-nocookie.com/embed/${u.pathname.slice(1)}`;
+    if (host.endsWith('youtube.com')) {
+      const id = u.searchParams.get('v') ?? u.pathname.split('/').pop();
+      return `https://www.youtube-nocookie.com/embed/${id}`;
+    }
+    if (host.endsWith('vimeo.com')) return `https://player.vimeo.com/video/${u.pathname.split('/').pop()}`;
+  } catch {}
+  return url;
+}
+
+const ready = hasFile(src);
+const video = ready && !isRemote(src) && isVideo(src);
+const embed = ready && !video ? toEmbed(src!) : undefined;
+const defaultRatio = device === 'phone' ? '9:19.5' : '16:10';
+const aspect = toRatio(ratio ?? defaultRatio);
+---
+
+<figure class:list={['block', 'w-wide', 'proto', `proto--${device}`]}>
+  <div class="proto__stage reveal">
+    <div class="proto__device">
+      {device === 'desktop' && (
+        <div class="proto__chrome" aria-hidden="true">
+          <span /><span /><span />
+        </div>
+      )}
+      <div class="proto__screen" style={`aspect-ratio: ${aspect}`}>
+        {
+          !ready ? (
+            <div class="ph" role="img" aria-label={`Prototype placeholder: ${label}`}>
+              <span class="ph__label">{label}</span>
+              <span class="ph__meta">{src ? `Waiting for ${src}` : 'Prototype placeholder'}</span>
+            </div>
+          ) : video ? (
+            <video src={src} muted loop playsinline preload="metadata" data-autoplay aria-label={label} />
+          ) : (
+            <iframe src={embed} title={label} loading="lazy" allow="fullscreen; autoplay; clipboard-write" allowfullscreen />
+          )
+        }
+      </div>
+    </div>
+  </div>
+  {
+    (caption || embed) && (
+      <figcaption class="caption">
+        {caption}
+        {embed && (
+          <>
+            {caption && ' '}
+            <a class="proto__open" href={src} target="_blank" rel="noopener">
+              Open in new tab
+            </a>
+          </>
+        )}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .proto__stage {
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 5vw, 80px);
+    border-radius: var(--radius);
+    background: var(--placeholder);
+  }
+  .proto__device {
+    width: 100%;
+    overflow: hidden;
+    background: #fff;
+  }
+  .proto--desktop .proto__device {
+    max-width: 1280px;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 24px 48px -24px rgba(0, 0, 0, 0.18);
+  }
+  .proto--phone .proto__device {
+    max-width: 360px;
+    padding: 10px;
+    border-radius: 48px;
+    background: #000;
+  }
+  .proto--phone .proto__screen { border-radius: 38px; overflow: hidden; }
+  .proto--none .proto__device { background: transparent; }
+  .proto--none .proto__stage { padding: 0; }
+
+  .proto__chrome {
+    display: flex;
+    gap: 6px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .proto__chrome span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e2e2e2;
+  }
+  .proto__screen { position: relative; background: #fff; }
+  .proto__screen > iframe,
+  .proto__screen > video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+  }
+  .proto__screen > .ph { background: #fafafa; }
+  .proto__open {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+</style>
